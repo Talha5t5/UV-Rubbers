@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ArrowRight, Star, SlidersHorizontal, Search } from "lucide-react";
 import Link from "next/link";
-import { productCatalog, formatCurrency } from "@/components/uvrubbers/productData";
+import { productCatalog as initialProductCatalog, formatCurrency } from "@/components/uvrubbers/productData";
 import { reasons } from "@/components/uvrubbers/siteData";
 import SiteFooter from "@/components/uvrubbers/SiteFooter";
 import SiteHeader from "@/components/uvrubbers/SiteHeader";
@@ -15,18 +15,30 @@ import { Input } from "@/components/ui/input";
 export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All Products");
+    const [products, setProducts] = useState(initialProductCatalog);
+
+    useEffect(() => {
+        fetch("/api/products?activeOnly=true")
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    setProducts(data);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     const categories = ["All Products", "Seal Kits", "Pipes & Cables", "Accessories"];
 
     const filteredProducts = useMemo(() => {
-        return productCatalog.filter((product) => {
+        return products.filter((product: any) => {
             const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 product.summary.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = activeCategory === "All Products" || product.category === activeCategory;
 
             return matchesSearch && matchesCategory;
         });
-    }, [searchQuery, activeCategory]);
+    }, [searchQuery, activeCategory, products]);
 
     return (
         <div className="min-h-screen bg-background text-foreground">

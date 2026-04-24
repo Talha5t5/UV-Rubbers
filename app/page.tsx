@@ -2,7 +2,9 @@ import { ArrowRight, Check, Star, ShieldCheck, Truck, Recycle, Award, Play, Stor
 import Link from "next/link";
 
 import CompareSlider from "@/components/uvrubbers/CompareSlider";
-import { featuredProducts, formatCurrency } from "@/components/uvrubbers/productData";
+import { formatCurrency } from "@/components/uvrubbers/productData";
+import Product from "@/lib/models/Product";
+import dbConnect from "@/lib/mongodb";
 import SiteFooter from "@/components/uvrubbers/SiteFooter";
 import SiteHeader from "@/components/uvrubbers/SiteHeader";
 import VideoModal from "@/components/uvrubbers/VideoModal";
@@ -11,7 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function Home() {
+export default async function Home() {
+    await dbConnect();
+    const dbProducts = await Product.find({ isActive: true }).lean() as any[];
+    const featuredProducts = dbProducts.slice(0, 3);
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SiteHeader />
@@ -284,7 +289,7 @@ export default function Home() {
                                             <h3 className="text-2xl font-black leading-tight group-hover:text-brand transition-colors">{product.name}</h3>
                                         </div>
                                         <div className="text-3xl font-black text-brand flex items-baseline gap-2">
-                                            {formatCurrency(Math.min(...product.variants.map((v) => v.price)))}
+                                            {formatCurrency(Math.min(...product.variants.map((v: any) => v.price)))}
                                             <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Starting At</span>
                                         </div>
                                         <p className="text-muted-foreground leading-relaxed text-sm flex-1">{product.summary}</p>

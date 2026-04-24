@@ -1,11 +1,11 @@
 "use client";
 
 import { Minus, Plus, ShoppingBag, Star, Check, ArrowLeft, ShieldCheck, Award, Truck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
-import { formatCurrency, getProductBySlug, productCatalog } from "@/components/uvrubbers/productData";
+import { formatCurrency } from "@/components/uvrubbers/productData";
 import SiteFooter from "@/components/uvrubbers/SiteFooter";
 import SiteHeader from "@/components/uvrubbers/SiteHeader";
 import { useStore } from "@/components/uvrubbers/StoreContext";
@@ -14,21 +14,48 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
 export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params?.slug as string;
-    const product = getProductBySlug(slug);
+    const [product, setProduct] = useState<any>(null);
+    const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const { addItem } = useStore();
     const { toast } = useToast();
     const [quantity, setQuantity] = useState(1);
-    const [variantId, setVariantId] = useState(product?.variants[0]?.id ?? "");
+    const [variantId, setVariantId] = useState("");
+
+    useEffect(() => {
+        fetch("/api/products?activeOnly=true")
+            .then(res => res.json())
+            .then(data => {
+                const found = data.find((p: any) => p.slug === slug);
+                setProduct(found);
+                if (found) {
+                    setVariantId(found.variants?.[0]?.id || found.variants?.[0]?._id);
+                    setRelatedProducts(data.filter((p: any) => p.slug !== slug).slice(0, 2));
+                }
+                setLoading(false);
+            })
+            .catch((e) => {
+                console.error(e);
+                setLoading(false);
+            });
+    }, [slug]);
 
     const selectedVariant = useMemo(
-        () => product?.variants.find((variant) => variant.id === variantId) ?? product?.variants[0],
+        () => product?.variants?.find((variant: any) => variant.id === variantId || variant._id === variantId) ?? product?.variants?.[0],
         [product, variantId],
     );
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+            </div>
+        );
+    }
 
     if (!product || !selectedVariant) {
         return (
@@ -44,13 +71,11 @@ export default function ProductDetailPage() {
         );
     }
 
-    const relatedProducts = productCatalog.filter((item) => item.slug !== product.slug).slice(0, 2);
-
     const handleAddToCart = () => {
         addItem({
             productSlug: product.slug,
             productName: product.name,
-            variantId: selectedVariant.id,
+            variantId: selectedVariant.id || selectedVariant._id,
             variantName: selectedVariant.name,
             sku: selectedVariant.sku,
             price: selectedVariant.price,
@@ -97,20 +122,23 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-6">
-                                    {product.variants.slice(0, 3).map((variant) => (
-                                        <button
-                                            key={variant.id}
-                                            type="button"
-                                            onClick={() => setVariantId(variant.id)}
-                                            className={`group relative rounded-2xl overflow-hidden aspect-square border-2 transition-all duration-300 ${variant.id === selectedVariant.id
+                                    {product.variants.slice(0, 3).map((variant: any) => {
+                                        const vId = variant.id || variant._id;
+                                        return (
+                                            <button
+                                                key={vId}
+                                                type="button"
+                                                onClick={() => setVariantId(vId)}
+                                                className={`group relative rounded-2xl overflow-hidden aspect-square border-2 transition-all duration-300 ${vId === (selectedVariant?.id || selectedVariant?._id)
                                                     ? "border-brand shadow-brand/20 shadow-lg scale-[1.02]"
                                                     : "border-transparent hover:border-brand/40 shadow-sm"
-                                                }`}
-                                        >
-                                            <img src={variant.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            <div className={`absolute inset-0 transition-colors ${variant.id === selectedVariant.id ? "bg-brand/5" : "bg-black/10 group-hover:bg-black/0"}`} />
-                                        </button>
-                                    ))}
+                                                    }`}
+                                            >
+                                                <img src={variant.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                <div className={`absolute inset-0 transition-colors ${vId === (selectedVariant?.id || selectedVariant?._id) ? "bg-brand/5" : "bg-black/10 group-hover:bg-black/0"}`} />
+                                            </button>
+                                        )
+                                    })}
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-6 pt-8 border-t border-border">
@@ -160,13 +188,13 @@ export default function ProductDetailPage() {
                                     <div className="grid md:grid-cols-2 gap-8 pt-4">
                                         <div className="space-y-3">
                                             <label className="text-[11px] font-black uppercase tracking-widest text-dark/60 ml-4">Choose Option</label>
-                                            <Select value={selectedVariant.id} onValueChange={setVariantId}>
+                                            <Select value={selectedVariant?.id || selectedVariant?._id} onValueChange={setVariantId}>
                                                 <SelectTrigger className="rounded-full bg-white border-border h-14 px-6 text-sm font-bold uppercase tracking-widest focus:ring-brand shadow-sm">
                                                     <SelectValue placeholder="Choose option" />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-border">
-                                                    {product.variants.map((variant) => (
-                                                        <SelectItem key={variant.id} value={variant.id} className="font-bold text-xs uppercase tracking-widest py-3">
+                                                    {product.variants.map((variant: any) => (
+                                                        <SelectItem key={variant.id || variant._id} value={variant.id || variant._id} className="font-bold text-xs uppercase tracking-widest py-3">
                                                             {variant.name}
                                                         </SelectItem>
                                                     ))}
@@ -261,7 +289,7 @@ export default function ProductDetailPage() {
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-10">
-                            {relatedProducts.map((item) => (
+                            {relatedProducts.map((item: any) => (
                                 <Card key={item.slug} className="group rounded-3xl overflow-hidden border-border bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col md:flex-row h-full">
                                     <div className="relative w-full md:w-1/2 aspect-[4/3] md:aspect-auto overflow-hidden">
                                         <img
