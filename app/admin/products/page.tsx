@@ -53,9 +53,11 @@ export default function AdminProductsPage() {
                     <h1 className="text-4xl font-black text-dark uppercase tracking-tight">Products Menu</h1>
                     <p className="text-muted-foreground mt-2 font-medium">Manage your catalog, stock levels, and variants.</p>
                 </div>
-                <Button className="bg-brand hover:bg-brand-dark text-white rounded-xl h-12 shadow-brand flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    <span className="font-bold uppercase tracking-widest text-[11px]">Add Product</span>
+                <Button asChild className="bg-brand hover:bg-brand-dark text-white rounded-xl h-12 shadow-brand flex items-center gap-2">
+                    <Link href="/admin/products/new">
+                        <Plus className="w-5 h-5" />
+                        <span className="font-bold uppercase tracking-widest text-[11px]">Add Product</span>
+                    </Link>
                 </Button>
             </div>
 
@@ -118,9 +120,11 @@ export default function AdminProductsPage() {
                                                 <span className="bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">Hidden</span>
                                             )}
                                         </td>
-                                        <td className="p-4 text-right pr-6 space-x-2">
-                                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg text-brand border-brand/20 hover:bg-brand/10">
-                                                <Edit3 className="w-4 h-4" />
+                                        <td className="p-4 text-right pr-6 space-x-2 flex items-center justify-end">
+                                            <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg text-brand border-brand/20 hover:bg-brand/10">
+                                                <Link href={`/admin/products/${product._id}`}>
+                                                    <Edit3 className="w-4 h-4" />
+                                                </Link>
                                             </Button>
                                             <Button onClick={() => handleDelete(product._id, product.name)} variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg text-red-500 border-red-200 hover:bg-red-50">
                                                 <Trash2 className="w-4 h-4" />
