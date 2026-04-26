@@ -109,11 +109,17 @@ export default function ProductDetailPage() {
                             {/* IMAGE GALLERY SIDE */}
                             <div className="space-y-8 sticky top-[160px]">
                                 <div className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-border aspect-[4/3] bg-muted/20">
-                                    <img
-                                        src={selectedVariant.image}
-                                        alt={selectedVariant.name}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                    />
+                                    {selectedVariant.image ? (
+                                        <img
+                                            src={selectedVariant.image}
+                                            alt={selectedVariant.name}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                            <ShoppingBag className="w-16 h-16" />
+                                        </div>
+                                    )}
                                     <div className="absolute top-8 left-8">
                                         <Badge className="bg-brand text-white font-black uppercase tracking-[0.2em] text-xs px-5 py-2 rounded-full shadow-brand border-none">
                                             {product.category}
@@ -134,7 +140,13 @@ export default function ProductDetailPage() {
                                                     : "border-transparent hover:border-brand/40 shadow-sm"
                                                     }`}
                                             >
-                                                <img src={variant.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                {variant.image ? (
+                                                    <img src={variant.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                                        <ShoppingBag className="w-6 h-6" />
+                                                    </div>
+                                                )}
                                                 <div className={`absolute inset-0 transition-colors ${vId === (selectedVariant?.id || selectedVariant?._id) ? "bg-brand/5" : "bg-black/10 group-hover:bg-black/0"}`} />
                                             </button>
                                         )
@@ -292,11 +304,17 @@ export default function ProductDetailPage() {
                             {relatedProducts.map((item: any) => (
                                 <Card key={item.slug} className="group rounded-3xl overflow-hidden border-border bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col md:flex-row h-full">
                                     <div className="relative w-full md:w-1/2 aspect-[4/3] md:aspect-auto overflow-hidden">
-                                        <img
-                                            src={item.heroImage}
-                                            alt={item.name}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        />
+                                        {item.heroImage ? (
+                                            <img
+                                                src={item.heroImage}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                                <ShoppingBag className="w-12 h-12" />
+                                            </div>
+                                        )}
                                         <div className="absolute top-4 left-4">
                                             <Badge className="bg-brand/90 backdrop-blur-sm text-white font-black uppercase tracking-widest text-[9px] px-3 py-1 rounded-full border-none shadow-sm">
                                                 {item.category}

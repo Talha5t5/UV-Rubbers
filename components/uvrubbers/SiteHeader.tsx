@@ -33,7 +33,7 @@ const SiteHeader = () => {
           <div className="flex items-center gap-2"><MapPin className="w-3 h-3" /> Melbourne, Australia</div>
         </div>
         <div className="flex items-center gap-6 mx-auto sm:mx-0">
-          <div className="flex items-center gap-2 font-black">Free Shipping on orders over $150</div>
+          <div className="flex items-center gap-2 font-black">Free Shipping on orders over $200</div>
         </div>
       </div>
 

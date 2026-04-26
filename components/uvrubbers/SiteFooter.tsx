@@ -48,6 +48,7 @@ const SiteFooter = () => {
             <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white">Company</h4>
             <ul className="space-y-4 text-sm font-bold uppercase tracking-widest text-white/50">
               <li><Link href="/about" className="hover:text-brand transition-colors">Our Story</Link></li>
+              <li><Link href="/delivery" className="hover:text-brand transition-colors">Delivery & Shipping</Link></li>
               <li><Link href="/contact" className="hover:text-brand transition-colors">Contact Us</Link></li>
               <li><Link href="/privacy" className="hover:text-brand transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-brand transition-colors">Terms of Service</Link></li>
