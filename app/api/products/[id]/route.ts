@@ -4,18 +4,19 @@ import Product from "@/lib/models/Product";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session || (session as any).user.role !== "admin") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         await dbConnect();
         const data = await req.json();
 
         // Explicitly handle updates
-        const product = await Product.findByIdAndUpdate(params.id, data, { new: true, runValidators: true });
+        const product = await Product.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 
         if (!product) {
             return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -27,16 +28,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session || (session as any).user.role !== "admin") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         await dbConnect();
 
-        const product = await Product.findByIdAndDelete(params.id);
+        const product = await Product.findByIdAndDelete(id);
         if (!product) {
             return NextResponse.json({ error: "Product not found" }, { status: 404 });
         }

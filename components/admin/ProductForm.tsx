@@ -26,6 +26,51 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
         variants: initialData?.variants || [],
     });
 
+    const uploadImage = async (file: File) => {
+        const data = new FormData();
+        data.append("file", file);
+
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            body: data,
+        });
+
+        if (!res.ok) throw new Error("Upload failed");
+
+        const resData = await res.json();
+        return resData.url;
+    };
+
+    const handleHeroImageUpload = async (e: any) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            setLoading(true);
+            const url = await uploadImage(file);
+            setFormData(prev => ({ ...prev, heroImage: url }));
+            toast({ title: "Success", description: "Image uploaded successfully!" });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVariantImageUpload = async (index: number, e: any) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            setLoading(true);
+            const url = await uploadImage(file);
+            handleVariantChange(index, "image", url);
+            toast({ title: "Success", description: "Variant image uploaded!" });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
@@ -175,8 +220,11 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Image URL</label>
-                                        <Input required value={v.image} onChange={(e) => handleVariantChange(index, "image", e.target.value)} className="bg-white border-gray-200" />
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Image (Upload or Enter URL)</label>
+                                        <div className="flex gap-2">
+                                            <Input required value={v.image} onChange={(e) => handleVariantChange(index, "image", e.target.value)} className="bg-white border-gray-200" placeholder="Image URL" />
+                                            <Input type="file" accept="image/*" onChange={(e) => handleVariantImageUpload(index, e)} className="bg-white border-gray-200 w-[120px]" />
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -224,10 +272,16 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
                     <div className="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 space-y-6">
                         <h2 className="text-xl font-black uppercase tracking-tight">Media</h2>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hero Image URL</label>
-                            <Input name="heroImage" value={formData.heroImage} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" placeholder="/products/uv5001.jpg" />
+                            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hero Image</label>
+                            <div className="flex gap-4">
+                                <Input name="heroImage" value={formData.heroImage} onChange={handleChange} className="h-12 flex-1 bg-gray-50 border-gray-200" placeholder="/products/uv5001.jpg" />
+                                <div className="relative w-32">
+                                    <Input type="file" accept="image/*" onChange={handleHeroImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                    <Button type="button" variant="outline" className="w-full h-12 bg-white">Upload File</Button>
+                                </div>
+                            </div>
                             {formData.heroImage && (
-                                <div className="mt-4 aspect-[4/3] rounded-xl overflow-hidden border border-gray-200">
+                                <div className="mt-4 aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 w-64 h-auto">
                                     <img src={formData.heroImage} className="w-full h-full object-cover" alt="Preview" />
                                 </div>
                             )}

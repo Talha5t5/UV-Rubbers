@@ -269,11 +269,17 @@ export default async function Home() {
                             {featuredProducts.map((product) => (
                                 <Card key={product.slug} className="group rounded-2xl overflow-hidden border-border bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
                                     <div className="relative aspect-[1.4/1] overflow-hidden">
-                                        <img
-                                            src={product.heroImage}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                        {product.heroImage ? (
+                                            <img
+                                                src={product.heroImage}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                                <ShoppingCart className="w-12 h-12" />
+                                            </div>
+                                        )}
                                         <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
                                             <Badge className="bg-brand text-white font-bold uppercase tracking-widest text-[10px] px-3 py-1 rounded-full border-none shadow-brand">
                                                 {product.category}

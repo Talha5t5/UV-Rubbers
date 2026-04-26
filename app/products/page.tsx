@@ -111,11 +111,17 @@ export default function ProductsPage() {
                                     return (
                                         <Card key={product.slug} className="group rounded-3xl overflow-hidden border-border bg-white shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
                                             <div className="relative aspect-[1.3/1] overflow-hidden">
-                                                <img
-                                                    src={product.heroImage}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                                />
+                                                {product.heroImage ? (
+                                                    <img
+                                                        src={product.heroImage}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                                        <Search className="w-12 h-12" />
+                                                    </div>
+                                                )}
                                                 <div className="absolute top-6 right-6 flex flex-col gap-2 items-end">
                                                     <Badge className="bg-brand text-white font-black uppercase tracking-widest text-[10px] px-4 py-1.5 rounded-full border-none shadow-brand">
                                                         {product.category}
