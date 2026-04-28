@@ -19,24 +19,14 @@ export default function SaleModal({ settings }: SaleModalProps) {
     useEffect(() => {
         if (!settings?.globalSaleActive) return;
 
-        // Check if user has seen this specific sale before
-        const storageKey = `uvrubbers-sale-seen-${settings.globalSaleLabel || 'default'}`;
-        const hasSeen = localStorage.getItem(storageKey);
-
-        if (!hasSeen) {
-            // Delay a bit for better UX
-            const timer = setTimeout(() => {
-                setOpen(true);
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
+        // Delay a bit for better UX
+        const timer = setTimeout(() => {
+            setOpen(true);
+        }, 1500);
+        return () => clearTimeout(timer);
     }, [settings]);
 
     const handleClose = () => {
-        if (settings) {
-            const storageKey = `uvrubbers-sale-seen-${settings.globalSaleLabel || 'default'}`;
-            localStorage.setItem(storageKey, "true");
-        }
         setOpen(false);
     };
 
@@ -45,6 +35,7 @@ export default function SaleModal({ settings }: SaleModalProps) {
     return (
         <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); }}>
             <DialogContent className="max-w-2xl p-0 overflow-hidden border-none rounded-[2.5rem] bg-transparent">
+                <DialogTitle className="sr-only">Site-wide Sale Event</DialogTitle>
                 <div className="relative bg-orange-600 p-12 text-white overflow-hidden">
                     {/* Background decorations */}
                     <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />

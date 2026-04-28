@@ -8,7 +8,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     await dbConnect();
 
     // Use lean() to get a plain JSON object and manually serialize the _id
-    let product = await Product.findById(id).lean();
+    let product = await (Product as any).findById(id).lean();
 
     if (!product) {
         notFound();
