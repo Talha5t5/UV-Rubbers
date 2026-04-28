@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import User from "@/lib/models/User";
+import SiteSettings from "@/lib/models/SiteSettings";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
@@ -19,29 +20,24 @@ export async function GET() {
         const activeProducts = await Product.countDocuments({ isActive: true });
         const inactiveProducts = totalProducts - activeProducts;
 
-        // Get all products to compute variant & stock stats
+        // Get all products to compute stock stats
         const allProducts = await Product.find().lean() as any[];
 
-        let totalVariants = 0;
         let totalStockUnits = 0;
-        let lowStockVariants: any[] = [];
+        let lowStockProducts: any[] = [];
         let totalCatalogValue = 0;
 
         allProducts.forEach((product: any) => {
-            if (product.variants && Array.isArray(product.variants)) {
-                product.variants.forEach((v: any) => {
-                    totalVariants++;
-                    totalStockUnits += v.stock || 0;
-                    totalCatalogValue += (v.price || 0) * (v.stock || 0);
+            const stock = product.stock || 0;
+            const price = product.price || 0;
+            totalStockUnits += stock;
+            totalCatalogValue += price * stock;
 
-                    if ((v.stock || 0) <= 10) {
-                        lowStockVariants.push({
-                            productName: product.name,
-                            variantName: v.name,
-                            stock: v.stock || 0,
-                            sku: v.sku,
-                        });
-                    }
+            if (stock <= 10) {
+                lowStockProducts.push({
+                    productName: product.name,
+                    stock,
+                    sku: product.sku || "",
                 });
             }
         });
@@ -53,8 +49,16 @@ export async function GET() {
         const recentProducts = await Product.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select("name slug category heroImage variants isActive createdAt")
+            .select("name slug category heroImage sku price salePrice stock isActive createdAt")
             .lean();
+
+        // Site settings (sale)
+        const siteSettings = await SiteSettings.findOne({ key: "global" }).lean() as any;
+        const settings = siteSettings ?? {
+            globalSaleActive: false,
+            globalSalePercent: 0,
+            globalSaleLabel: "",
+        };
 
         return NextResponse.json({
             products: {
@@ -62,12 +66,9 @@ export async function GET() {
                 active: activeProducts,
                 inactive: inactiveProducts,
             },
-            variants: {
-                total: totalVariants,
-            },
             stock: {
                 totalUnits: totalStockUnits,
-                lowStockVariants: lowStockVariants.slice(0, 10),
+                lowStockProducts: lowStockProducts.slice(0, 10),
             },
             catalogValue: totalCatalogValue,
             users: {
@@ -77,6 +78,7 @@ export async function GET() {
                 ...p,
                 _id: p._id.toString(),
             })),
+            settings,
         });
     } catch (error: any) {
         console.error("Stats error:", error);

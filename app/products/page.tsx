@@ -16,16 +16,29 @@ export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All Products");
     const [products, setProducts] = useState(initialProductCatalog);
+    const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
-        fetch("/api/products?activeOnly=true")
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setProducts(data);
+        const loadPageData = async () => {
+            try {
+                const [productsRes, settingsRes] = await Promise.all([
+                    fetch("/api/products?activeOnly=true"),
+                    fetch("/api/admin/settings")
+                ]);
+
+                const productsData = await productsRes.json();
+                const settingsData = await settingsRes.json();
+
+                if (Array.isArray(productsData) && productsData.length > 0) {
+                    setProducts(productsData);
                 }
-            })
-            .catch(console.error);
+                setSettings(settingsData);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        loadPageData();
     }, []);
 
     const categories = ["All Products", "Seal Kits", "Pipes & Cables", "Accessories"];
@@ -106,7 +119,16 @@ export default function ProductsPage() {
                         {filteredProducts.length > 0 ? (
                             <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
                                 {filteredProducts.map((product) => {
-                                    const fromPrice = Math.min(...product.variants.map((v) => v.price));
+                                    const basePrice = product.price || 0;
+                                    let effectivePrice = basePrice;
+
+                                    if (product.salePrice && product.salePrice > 0) {
+                                        effectivePrice = product.salePrice;
+                                    } else if (settings?.globalSaleActive && settings?.globalSalePercent > 0) {
+                                        effectivePrice = basePrice * (1 - settings.globalSalePercent / 100);
+                                    }
+
+                                    const isSale = effectivePrice < basePrice;
 
                                     return (
                                         <Card key={product.slug} className="group rounded-3xl overflow-hidden border-border bg-white shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
@@ -126,9 +148,11 @@ export default function ProductsPage() {
                                                     <Badge className="bg-brand text-white font-black uppercase tracking-widest text-[10px] px-4 py-1.5 rounded-full border-none shadow-brand">
                                                         {product.category}
                                                     </Badge>
-                                                    <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-dark font-black text-[10px] uppercase px-4 py-1.5 rounded-full border border-border shadow-sm">
-                                                        {product.variants.length} Options
-                                                    </Badge>
+                                                    {isSale && (
+                                                        <Badge className="bg-orange-600 text-white font-black uppercase tracking-widest text-[10px] px-4 py-1.5 rounded-full border-none shadow-xl animate-bounce-slow">
+                                                            SALE
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </div>
                                             <CardContent className="p-10 flex-1 flex flex-col space-y-6">
@@ -149,8 +173,17 @@ export default function ProductsPage() {
                                                 </div>
                                                 <div className="pt-6 border-t border-muted-foreground/10 flex items-center justify-between mt-auto">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">Starting At</span>
-                                                        <span className="text-3xl font-black text-brand leading-none">{formatCurrency(fromPrice)}</span>
+                                                        {isSale ? (
+                                                            <>
+                                                                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/50 leading-none mb-1 line-through decoration-orange-600/50 decoration-2">{formatCurrency(basePrice)}</span>
+                                                                <span className="text-4xl font-black text-orange-600 leading-none">{formatCurrency(effectivePrice)}</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">Standard Price</span>
+                                                                <span className="text-3xl font-black text-brand leading-none">{formatCurrency(basePrice)}</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                     <Button asChild className="rounded-full bg-brand hover:bg-brand-dark h-14 w-14 p-0 shadow-brand transition-all flex items-center justify-center">
                                                         <Link href={`/products/${product.slug}`} className="flex items-center justify-center h-full w-full">

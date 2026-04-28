@@ -12,11 +12,19 @@ import { features, reasons } from "@/components/uvrubbers/siteData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import SiteSettings from "@/lib/models/SiteSettings";
+import SaleModal from "@/components/uvrubbers/SaleModal";
 
 export default async function Home() {
     await dbConnect();
-    const dbProducts = await Product.find({ isActive: true }).lean() as any[];
-    const featuredProducts = dbProducts.slice(0, 3);
+    const dbProducts = await Product.find({ isActive: true } as any).limit(3).lean() as any[];
+    const siteSettings = await SiteSettings.findOne({ key: "global" } as any).lean() as any;
+    const settings = siteSettings ? {
+        globalSaleActive: !!siteSettings.globalSaleActive,
+        globalSalePercent: Number(siteSettings.globalSalePercent || 0),
+        globalSaleLabel: String(siteSettings.globalSaleLabel || ""),
+    } : { globalSaleActive: false, globalSalePercent: 0 };
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             <SiteHeader />
@@ -266,7 +274,7 @@ export default async function Home() {
                             <div className="divider mx-auto" />
                         </div>
                         <div className="grid md:grid-cols-3 gap-8">
-                            {featuredProducts.map((product) => (
+                            {dbProducts.map((product) => (
                                 <Card key={product.slug} className="group rounded-2xl overflow-hidden border-border bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
                                     <div className="relative aspect-[1.4/1] overflow-hidden">
                                         {product.heroImage ? (
@@ -284,9 +292,11 @@ export default async function Home() {
                                             <Badge className="bg-brand text-white font-bold uppercase tracking-widest text-[10px] px-3 py-1 rounded-full border-none shadow-brand">
                                                 {product.category}
                                             </Badge>
-                                            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-dark font-bold text-[10px] uppercase px-3 py-1 rounded-full">
-                                                {product.variants.length} Options
-                                            </Badge>
+                                            {(product.salePrice || settings.globalSaleActive) && (
+                                                <Badge className="bg-orange-600 text-white font-bold uppercase tracking-widest text-[10px] px-3 py-1 rounded-full border-none shadow-brand animate-pulse-slow">
+                                                    SALE
+                                                </Badge>
+                                            )}
                                         </div>
                                     </div>
                                     <CardContent className="p-8 flex-1 flex flex-col space-y-4">
@@ -294,9 +304,28 @@ export default async function Home() {
                                             <div className="text-[10px] font-black tracking-widest text-brand uppercase opacity-60">Professional Range</div>
                                             <h3 className="text-2xl font-black leading-tight group-hover:text-brand transition-colors">{product.name}</h3>
                                         </div>
-                                        <div className="text-3xl font-black text-brand flex items-baseline gap-2">
-                                            {formatCurrency(Math.min(...product.variants.map((v: any) => v.price)))}
-                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Starting At</span>
+                                        <div className="flex flex-col">
+                                            {(() => {
+                                                const basePrice = product.price || 0;
+                                                let effectivePrice = basePrice;
+                                                if (product.salePrice > 0) effectivePrice = product.salePrice;
+                                                else if (settings.globalSaleActive) effectivePrice = basePrice * (1 - settings.globalSalePercent / 100);
+
+                                                const isSale = effectivePrice < basePrice;
+
+                                                return (
+                                                    <div className="flex items-baseline gap-3">
+                                                        <span className={`text-4xl font-black leading-none ${isSale ? 'text-orange-600' : 'text-brand'}`}>
+                                                            {formatCurrency(effectivePrice)}
+                                                        </span>
+                                                        {isSale && (
+                                                            <span className="text-xs font-bold text-muted-foreground/50 line-through decoration-orange-600/50 decoration-2">
+                                                                {formatCurrency(basePrice)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                         <p className="text-muted-foreground leading-relaxed text-sm flex-1">{product.summary}</p>
                                         <Button asChild className="rounded-full bg-brand-light/10 text-brand hover:bg-brand hover:text-white border border-brand/20 w-full font-bold h-12 uppercase tracking-wider">
@@ -421,6 +450,7 @@ export default async function Home() {
                 </section>
             </main>
             <SiteFooter />
+            <SaleModal settings={settings} />
         </div>
     );
 }

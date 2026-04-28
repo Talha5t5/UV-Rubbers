@@ -97,17 +97,17 @@ const SiteHeader = () => {
                       {items.map((item) => (
                         <div key={item.id} className="flex gap-5 rounded-2xl border border-border bg-muted/30 p-4 group hover:border-brand/30 transition-colors">
                           <div className="h-24 w-24 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
-                            <img src={item.image} alt={item.variantName} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <img src={item.image} alt={item.productName} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
                           </div>
                           <div className="min-w-0 flex-1 space-y-1 py-1">
                             <div className="text-[10px] font-black uppercase tracking-widest text-brand opacity-60 leading-none mb-1">{item.sku}</div>
-                            <h3 className="font-display font-black text-lg leading-tight text-dark">{item.variantName}</h3>
+                            <h3 className="font-display font-black text-lg leading-tight text-dark">{item.productName}</h3>
                             <div className="flex items-center justify-between pt-2">
                               <p className="text-xs font-bold uppercase text-muted-foreground tracking-widest">Qty {item.quantity}</p>
                               <p className="font-black text-brand text-lg">{formatCurrency(item.price * item.quantity)}</p>
                             </div>
                           </div>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="rounded-full hover:bg-red-50 hover:text-red-600 transition-colors" aria-label={`Remove ${item.variantName}`}>
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} className="rounded-full hover:bg-red-50 hover:text-red-600 transition-colors" aria-label={`Remove ${item.productName}`}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

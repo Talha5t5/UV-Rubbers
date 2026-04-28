@@ -3,22 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
 
-// Define the partial schema matching Next.js App
-const ProductVariantSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    size: { type: String, required: true },
-    roofType: { type: String },
-    length: { type: String },
-    sku: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantityLabel: { type: String, required: true },
-    barcode: { type: String },
-    warranty: { type: String },
-    image: { type: String, required: true },
-    blurb: { type: String },
-    stock: { type: Number, default: 100 }, // Defaulting to 100 on migration
-});
-
 const ProductSchema = new mongoose.Schema(
     {
         slug: { type: String, required: true, unique: true },
@@ -28,7 +12,13 @@ const ProductSchema = new mongoose.Schema(
         summary: { type: String },
         description: { type: String },
         heroImage: { type: String },
-        variants: [ProductVariantSchema],
+        sku: { type: String },
+        price: { type: Number, required: true, default: 0 },
+        stock: { type: Number, default: 0 },
+        size: { type: String },
+        quantityLabel: { type: String },
+        barcode: { type: String },
+        warranty: { type: String },
         isActive: { type: Boolean, default: true },
     },
     { timestamps: true }
@@ -36,157 +26,166 @@ const ProductSchema = new mongoose.Schema(
 
 const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
 
-// The hardcoded existing product data
-const productCatalog = [
+const products = [
     {
-        slug: "elephant-roof-seal-kit",
-        name: "The Elephant Roof Seal Kit",
+        slug: "70mm-tin-roof-kit",
+        name: "70 mm Tin Roof Kit",
         category: "Seal Kits",
-        tagline: "Waterproof roof penetration kits for air-conditioning installers.",
-        summary:
-            "Australia's leading waterproof sealing solution for professional air conditioning installations.",
-        description:
-            "The Elephant Roof Seal Kit is designed to provide a clean, professional, and 100% waterproof finish for all roof penetrations. Engineered with premium EPDM rubber, it enables you to run all electrics and piping through a single hole, ensuring a faster installation and a result that lasts. VBA and BAL approved for total peace of mind.",
+        tagline: "Waterproof roof penetration kit for tin roofs.",
+        summary: "The Elephant Roof Seal Kit by UV Rubbers is a durable, Australian-made waterproofing solution designed for air-conditioning installations on tin roofs.",
+        description: "The Elephant Roof Seal Kit allows installers to run all electrical cables and piping through a single roof penetration, making the process faster and cleaner. Engineered with premium EPDM Rubber. UV Resistant, Waterproof & Weatherproof, BAL Approved and VBA Approved.",
         heroImage: "/products/uv5001.jpg",
-        variants: [
-            {
-                name: "70 mm Tin Roof Kit",
-                size: "70 mm",
-                roofType: "Tin roof",
-                sku: "UV5001",
-                price: 60,
-                quantityLabel: "x 1 kit",
-                barcode: "9369998009688",
-                warranty: "10 years",
-                image: "/products/uv5001.jpg",
-                blurb: "The professional choice for standard 70mm tin roof installations.",
-                stock: 500
-            },
-            {
-                name: "70 mm Tile Roof Kit",
-                size: "70 mm",
-                roofType: "Tile roof",
-                sku: "UV5002",
-                price: 65,
-                quantityLabel: "x 1 kit",
-                barcode: "9369999639471",
-                warranty: "10 years",
-                image: "/products/uv5002.jpg",
-                blurb: "Tailored tile-roof configuration for a seamless 70mm waterproof finish.",
-                stock: 300
-            },
-            {
-                name: "100 mm Tin Roof Kit",
-                size: "100 mm",
-                roofType: "Tin roof",
-                sku: "UV5003",
-                price: 70,
-                quantityLabel: "x 1 kit",
-                barcode: "9369999355883",
-                warranty: "10 years",
-                image: "/products/uv5003.jpg",
-                blurb: "High-capacity 100mm kit for larger commercial tin-roof penetrations.",
-                stock: 250
-            },
-            {
-                name: "100 mm Tile Roof Kit",
-                size: "100 mm",
-                roofType: "Tile roof",
-                sku: "UV5004",
-                price: 75,
-                quantityLabel: "x 1 kit",
-                barcode: "9369999116347",
-                warranty: "10 years",
-                image: "/products/uv5004.jpg",
-                blurb: "Heavy-duty 100mm tile-roof kit for complex system installations.",
-                stock: 120
-            },
-        ],
+        sku: "UV5001",
+        price: 60,
+        stock: 500,
+        size: "70 mm",
+        quantityLabel: "x 1 Kit",
+        barcode: "9369998009688",
+        warranty: "10 Years",
+        isActive: true,
     },
     {
-        slug: "pipe-cable-seal-roll",
-        name: "Elephant Pipe & Cable Pro-Finish",
+        slug: "70mm-tile-roof-kit",
+        name: "70 mm Tile Roof Kit",
+        category: "Seal Kits",
+        tagline: "Waterproof roof penetration kit for tile roofs.",
+        summary: "The Elephant Roof Seal Kit by UV Rubbers — 70mm tile roof configuration. A durable, Australian-made waterproofing solution for air-conditioning installations on tile roofs.",
+        description: "The Elephant Roof Seal Kit allows installers to run all electrical cables and piping through a single roof penetration, making the process faster and cleaner. Engineered with premium EPDM Rubber. UV Resistant, Waterproof & Weatherproof, BAL Approved and VBA Approved.",
+        heroImage: "/products/uv5002.jpg",
+        sku: "UV5002",
+        price: 65,
+        stock: 300,
+        size: "70 mm",
+        quantityLabel: "x 1 Kit",
+        barcode: "9369999639471",
+        warranty: "10 Years",
+        isActive: true,
+    },
+    {
+        slug: "100mm-tin-roof-kit",
+        name: "100 mm Tin Roof Kit",
+        category: "Seal Kits",
+        tagline: "High-capacity waterproof kit for 100mm tin roof penetrations.",
+        summary: "The Elephant Roof Seal Kit by UV Rubbers — 100mm tin roof configuration. A durable, Australian-made waterproofing solution for air-conditioning installations on tin roofs.",
+        description: "The Elephant Roof Seal Kit allows installers to run all electrical cables and piping through a single roof penetration, making the process faster and cleaner. Engineered with premium EPDM Rubber. UV Resistant, Waterproof & Weatherproof, BAL Approved and VBA Approved.",
+        heroImage: "/products/uv5003.jpg",
+        sku: "UV5003",
+        price: 70,
+        stock: 250,
+        size: "100 mm",
+        quantityLabel: "x 1 Kit",
+        barcode: "9369999355883",
+        warranty: "10 Years",
+        isActive: true,
+    },
+    {
+        slug: "100mm-tile-roof-kit",
+        name: "100 mm Tile Roof Kit",
+        category: "Seal Kits",
+        tagline: "Heavy-duty waterproof kit for 100mm tile roof penetrations.",
+        summary: "The Elephant Roof Seal Kit by UV Rubbers — 100mm tile roof configuration. A durable, Australian-made waterproofing solution for air-conditioning installations on tile roofs.",
+        description: "The Elephant Roof Seal Kit allows installers to run all electrical cables and piping through a single roof penetration, making the process faster and cleaner. Engineered with premium EPDM Rubber. UV Resistant, Waterproof & Weatherproof, BAL Approved and VBA Approved.",
+        heroImage: "/products/uv5004.jpg",
+        sku: "UV5004",
+        price: 75,
+        stock: 120,
+        size: "100 mm",
+        quantityLabel: "x 1 Kit",
+        barcode: "9369999116347",
+        warranty: "10 Years",
+        isActive: true,
+    },
+    {
+        slug: "70mm-trunk-roll-10m",
+        name: "70 mm Trunk In A Roll — 10 Metres",
         category: "Pipes & Cables",
-        tagline: "Flexible roll options for longer protected runs.",
-        summary:
-            "Premium seal-ready rolls designed for protecting exposed piping and cable runs.",
-        description:
-            "Our Pro-Finish Seal Rolls are the trade standard for extending the life and aesthetics of exposed installations. Made from UV-resistant materials and designed for rapid application, they provide a clean, bundled appearance while protecting sensitive components from the harsh Australian elements.",
+        tagline: "Flexible 70mm trunk roll for longer protected cable runs.",
+        summary: "UV Rubbers 70mm trunk-in-a-roll provides a clean, professional finish for exposed piping and cable runs. Supplied in a 10-metre roll.",
+        description: "Premium seal-ready rolls designed for protecting exposed piping and cable runs. Made from UV-resistant materials designed for rapid application, providing a clean, bundled appearance while protecting sensitive components from the harsh Australian elements.",
         heroImage: "/products/uv5007.jpg",
-        variants: [
-            {
-                name: "70 mm Pro-Finish Roll",
-                size: "70 mm",
-                length: "10 meters",
-                sku: "UV5007",
-                price: 105,
-                quantityLabel: "x 1 roll (10m)",
-                barcode: "9369998525614",
-                warranty: "10 years",
-                image: "/products/uv5007.jpg",
-                blurb: "Professional 70mm roll format provided in a versatile 10-meter length.",
-                stock: 80
-            },
-            {
-                name: "100 mm Pro-Finish Roll",
-                size: "100 mm",
-                length: "6 meters",
-                sku: "UV5008",
-                price: 90,
-                quantityLabel: "x 1 roll (6m)",
-                barcode: "9369900061858",
-                warranty: "10 years",
-                image: "/products/uv5008.jpg",
-                blurb: "Wider 100mm format for large bundles, supplied in a standard 6-meter roll.",
-                stock: 60
-            },
-        ],
+        sku: "UV5007",
+        price: 105,
+        stock: 80,
+        size: "70 mm",
+        quantityLabel: "x 1 Roll (10m)",
+        barcode: "9369998525614",
+        warranty: "10 Years",
+        isActive: true,
+    },
+    {
+        slug: "100mm-trunk-roll-6m",
+        name: "100 mm Trunk In Roll — 6 Metres",
+        category: "Pipes & Cables",
+        tagline: "Flexible 100mm trunk roll for larger protected cable runs.",
+        summary: "UV Rubbers 100mm trunk-in-roll provides a clean, professional finish for larger exposed piping and cable bundles. Supplied in a 6-metre roll.",
+        description: "Premium seal-ready rolls designed for protecting exposed piping and cable runs. Made from UV-resistant materials designed for rapid application, providing a clean, bundled appearance while protecting sensitive components from the harsh Australian elements.",
+        heroImage: "/products/uv5008.jpg",
+        sku: "UV5008",
+        price: 90,
+        stock: 60,
+        size: "100 mm",
+        quantityLabel: "x 1 Roll (6m)",
+        barcode: "9369900061858",
+        warranty: "10 Years",
+        isActive: true,
     },
     {
         slug: "electrical-solar-isolators",
         name: "Electrical & Solar Isolators",
         category: "Accessories",
-        tagline: "Accessory product for electrical and solar installations.",
-        summary:
-            "Trade-quality isolation solutions for solar and electrical HVAC installations.",
-        description:
-            "Complete your installation with our range of high-performance electrical and solar isolators. Designed to complement the Elephant range, these accessories ensure your entire system meets the highest safety and longevity standards required by the Australian trade field.",
+        tagline: "Trade-quality isolators for electrical and solar installations.",
+        summary: "UV Rubbers Electrical & Solar Isolators — trade-quality isolation solutions for solar and electrical HVAC installations.",
+        description: "Complete your installation with our high-performance electrical and solar isolators. Designed to complement the Elephant range, these accessories ensure your entire system meets the highest safety and longevity standards required by the Australian trade field.",
         heroImage: "/products/uv5010.png",
-        variants: [
-            {
-                name: "Professional Solar Isolator",
-                size: "Standard",
-                sku: "UV5010",
-                price: 40,
-                quantityLabel: "x 1 unit",
-                barcode: "9369998094592",
-                warranty: "10 years",
-                image: "/products/uv5010.png",
-                blurb: "Durable accessory product specifically suited to solar and electrical workflows.",
-                stock: 1200
-            },
-        ],
+        sku: "UV5010",
+        price: 40,
+        stock: 1200,
+        size: "Standard",
+        quantityLabel: "x 1 Unit",
+        barcode: "9369998094592",
+        warranty: "10 Years",
+        isActive: true,
+    },
+    {
+        slug: "25mm-tin-kit-hw-evap",
+        name: "25mm Tin Kit HW & Evap",
+        category: "Seal Kits",
+        tagline: "Compact 25mm kit for hot water and evaporative systems on tin roofs.",
+        summary: "UV Rubbers 25mm Tin Kit for HW & Evaporative systems. A compact, professional waterproofing kit for smaller penetrations on tin roofs.",
+        description: "The Elephant 25mm Tin Kit is designed for hot water and evaporative cooling installations. Allows installers to create a clean, waterproof seal around smaller 25mm penetrations on tin roofs. Engineered with premium EPDM Rubber. UV Resistant, Waterproof & Weatherproof, BAL Approved and VBA Approved.",
+        heroImage: "/products/uv5012.jpg",
+        sku: "UV5012",
+        price: 40,
+        stock: 400,
+        size: "25 mm",
+        quantityLabel: "x 1 Kit",
+        barcode: "9369998203826",
+        warranty: "10 Years",
+        isActive: true,
     },
 ];
 
 async function seed() {
     if (!process.env.MONGODB_URI) {
-        console.error("Missing MONGODB_URI");
+        console.error("Missing MONGODB_URI in .env.local");
         process.exit(1);
     }
 
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("Connected to MongoDB for Product Seed...");
+    console.log("✅ Connected to MongoDB...");
 
-    // Optional: clear existing
     await Product.deleteMany({});
-    console.log("Cleared existing products.");
+    console.log("🗑️  Cleared existing products.");
 
-    // Insert newly shaped data
-    await Product.insertMany(productCatalog);
-    console.log("Seeded default product catalog.");
+    await Product.insertMany(products as any);
+    console.log(`🌱 Seeded ${products.length} products successfully:`);
+    products.forEach((p, i) => console.log(`   ${i + 1}. ${p.name} (${p.sku}) — $${p.price}`));
 
+    await mongoose.disconnect();
     process.exit(0);
 }
 
-seed();
+seed().catch((err) => {
+    console.error("Seed failed:", err);
+    process.exit(1);
+});

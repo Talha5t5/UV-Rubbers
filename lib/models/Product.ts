@@ -1,20 +1,5 @@
 import mongoose from "mongoose";
 
-const ProductVariantSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    size: { type: String, required: true },
-    roofType: { type: String },
-    length: { type: String },
-    sku: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantityLabel: { type: String, required: true },
-    barcode: { type: String },
-    warranty: { type: String },
-    image: { type: String, required: true },
-    blurb: { type: String },
-    stock: { type: Number, default: 0 },
-});
-
 const ProductSchema = new mongoose.Schema(
     {
         slug: { type: String, required: true, unique: true },
@@ -24,7 +9,14 @@ const ProductSchema = new mongoose.Schema(
         summary: { type: String },
         description: { type: String },
         heroImage: { type: String },
-        variants: [ProductVariantSchema],
+        sku: { type: String },
+        price: { type: Number, required: true, default: 0 },
+        stock: { type: Number, default: 0 },
+        size: { type: String },
+        quantityLabel: { type: String },
+        barcode: { type: String },
+        warranty: { type: String },
+        salePrice: { type: Number, default: null },
         isActive: { type: Boolean, default: true },
     },
     { timestamps: true }

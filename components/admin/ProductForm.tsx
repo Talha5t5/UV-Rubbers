@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,8 +22,15 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
         summary: initialData?.summary || "",
         description: initialData?.description || "",
         heroImage: initialData?.heroImage || "",
+        sku: initialData?.sku || "",
+        price: initialData?.price ?? 0,
+        stock: initialData?.stock ?? 0,
+        size: initialData?.size || "",
+        quantityLabel: initialData?.quantityLabel || "",
+        barcode: initialData?.barcode || "",
+        warranty: initialData?.warranty || "",
+        salePrice: initialData?.salePrice ?? null,
         isActive: initialData?.isActive ?? true,
-        variants: initialData?.variants || [],
     });
 
     const uploadImage = async (file: File) => {
@@ -56,46 +63,9 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
         }
     };
 
-    const handleVariantImageUpload = async (index: number, e: any) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        try {
-            setLoading(true);
-            const url = await uploadImage(file);
-            handleVariantChange(index, "image", url);
-            toast({ title: "Success", description: "Variant image uploaded!" });
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleChange = (e: any) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    };
-
-    const handleVariantChange = (index: number, field: string, value: any) => {
-        const newVariants = [...formData.variants];
-        newVariants[index][field] = value;
-        setFormData(prev => ({ ...prev, variants: newVariants }));
-    };
-
-    const addVariant = () => {
-        setFormData(prev => ({
-            ...prev,
-            variants: [
-                ...prev.variants,
-                { name: "", size: "", sku: "", price: 0, quantityLabel: "x 1 kit", image: "", stock: 100 }
-            ]
-        }));
-    };
-
-    const removeVariant = (index: number) => {
-        const newVariants = [...formData.variants];
-        newVariants.splice(index, 1);
-        setFormData(prev => ({ ...prev, variants: newVariants }));
+        setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -147,6 +117,7 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
 
             <div className="grid md:grid-cols-[2fr_1fr] gap-8">
                 <div className="space-y-8">
+                    {/* Basic Info */}
                     <div className="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 space-y-6">
                         <h2 className="text-xl font-black uppercase tracking-tight">Basic Information</h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -176,68 +147,52 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
                         </div>
                     </div>
 
+                    {/* Pricing & Stock */}
                     <div className="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-black uppercase tracking-tight">Product Variants</h2>
-                            <Button type="button" onClick={addVariant} variant="outline" className="border-brand text-brand hover:bg-brand/5 rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                                <Plus className="w-3 h-3 mr-2" /> Add Variant
-                            </Button>
+                        <h2 className="text-xl font-black uppercase tracking-tight">Pricing & Stock</h2>
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Original Price (AUD)</label>
+                                <Input required type="number" step="0.01" name="price" value={formData.price} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sale Price (Optional)</label>
+                                <Input type="number" step="0.01" name="salePrice" value={formData.salePrice || ''} onChange={(e) => setFormData(prev => ({ ...prev, salePrice: e.target.value ? parseFloat(e.target.value) : null }))} className="h-12 bg-orange-50 border-orange-200 text-orange-900 font-bold" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Stock Qty</label>
+                                <Input type="number" name="stock" value={formData.stock} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">SKU Code</label>
+                                <Input name="sku" value={formData.sku} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" />
+                            </div>
                         </div>
-
-                        <div className="space-y-6">
-                            {formData.variants.map((v: any, index: number) => (
-                                <div key={index} className="p-6 rounded-2xl bg-gray-50 border border-gray-200 space-y-4 relative">
-                                    <div className="absolute top-4 right-4">
-                                        <Button type="button" onClick={() => removeVariant(index)} variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 pt-2">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Variant Name</label>
-                                            <Input required value={v.name} onChange={(e) => handleVariantChange(index, "name", e.target.value)} className="bg-white border-gray-200" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">SKU Code</label>
-                                            <Input required value={v.sku} onChange={(e) => handleVariantChange(index, "sku", e.target.value)} className="bg-white border-gray-200" />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price (AUD)</label>
-                                            <Input required type="number" value={v.price} onChange={(e) => handleVariantChange(index, "price", parseFloat(e.target.value))} className="bg-white border-gray-200" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Size</label>
-                                            <Input required value={v.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} className="bg-white border-gray-200" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stock Qty</label>
-                                            <Input type="number" value={v.stock} onChange={(e) => handleVariantChange(index, "stock", parseInt(e.target.value))} className="bg-white border-gray-200" />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Image (Upload or Enter URL)</label>
-                                        <div className="flex gap-2">
-                                            <Input required value={v.image} onChange={(e) => handleVariantChange(index, "image", e.target.value)} className="bg-white border-gray-200" placeholder="Image URL" />
-                                            <Input type="file" accept="image/*" onChange={(e) => handleVariantImageUpload(index, e)} className="bg-white border-gray-200 w-[120px]" />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                            {formData.variants.length === 0 && (
-                                <div className="text-center p-8 border-2 border-dashed border-gray-200 rounded-2xl text-muted-foreground text-sm font-medium">
-                                    Products must have at least one variant.
-                                </div>
-                            )}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Size / Dimensions</label>
+                                <Input name="size" value={formData.size} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Quantity Label</label>
+                                <Input name="quantityLabel" value={formData.quantityLabel} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" placeholder="e.g. x 1 kit" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Barcode</label>
+                                <Input name="barcode" value={formData.barcode} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Warranty</label>
+                                <Input name="warranty" value={formData.warranty} onChange={handleChange} className="h-12 bg-gray-50 border-gray-200" placeholder="e.g. 25 Years" />
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="space-y-8">
+                    {/* Organisation */}
                     <div className="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 space-y-6">
                         <h2 className="text-xl font-black uppercase tracking-tight">Organization</h2>
                         <div className="space-y-2">
@@ -269,10 +224,11 @@ export default function ProductForm({ initialData = null }: { initialData?: any 
                         </div>
                     </div>
 
+                    {/* Media */}
                     <div className="bg-white p-8 rounded-3xl shadow-soft border border-gray-100 space-y-6">
                         <h2 className="text-xl font-black uppercase tracking-tight">Media</h2>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hero Image</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Product Image</label>
                             <div className="flex gap-4">
                                 <Input name="heroImage" value={formData.heroImage} onChange={handleChange} className="h-12 flex-1 bg-gray-50 border-gray-200" placeholder="/products/uv5001.jpg" />
                                 <div className="relative w-32">

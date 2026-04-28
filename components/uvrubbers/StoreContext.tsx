@@ -6,8 +6,6 @@ type CartItem = {
   id: string;
   productSlug: string;
   productName: string;
-  variantId: string;
-  variantName: string;
   sku: string;
   price: number;
   image: string;
@@ -54,10 +52,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo<StoreContextValue>(() => {
     const addItem = (item: AddCartItem) => {
       setItems((current) => {
-        const existing = current.find((entry) => entry.variantId === item.variantId);
+        const existing = current.find((entry) => entry.productSlug === item.productSlug);
         if (existing) {
           return current.map((entry) =>
-            entry.variantId === item.variantId
+            entry.productSlug === item.productSlug
               ? { ...entry, quantity: entry.quantity + (item.quantity ?? 1) }
               : entry,
           );
@@ -67,7 +65,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           ...current,
           {
             ...item,
-            id: item.variantId,
+            id: item.productSlug,
             quantity: item.quantity ?? 1,
           },
         ];
